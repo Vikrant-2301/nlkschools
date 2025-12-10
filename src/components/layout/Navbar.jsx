@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, ArrowRight } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 
 const navLinks = [
   {
@@ -28,6 +29,16 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);
 
+  const pathname = usePathname();
+
+  // Logic: Navbar is "dark mode" (dark text) if scrolled OR if not on Home page
+  // This ensures visibility on light pages like Contact/Founders
+  const isHome = pathname === "/";
+  // Exception: Management page has a dark hero, so keep it light initially
+  const hasDarkHero = pathname === "/about/management";
+
+  const useDarkText = scrolled || (!isHome && !hasDarkHero);
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
@@ -40,7 +51,7 @@ export default function Navbar() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "circOut" }}
-        className={`fixed top-0 left-0 right-0 z-50 flex justify-center pt-6 px-4 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 flex justify-center px-4 transition-all duration-300 ${
           scrolled ? "pt-2" : "pt-6"
         }`}
       >
@@ -58,11 +69,15 @@ export default function Navbar() {
               alt="NLK Logo"
               className="w-12 h-12 object-contain"
             />
-            {!scrolled && (
-              <span className="text-xl font-bold tracking-tight text-white hidden lg:block">
-                NLK Group
-              </span>
-            )}
+
+            {/* FIXED: Text color toggles instead of hiding */}
+            <span
+              className={`text-xl font-bold tracking-tight  transition-colors duration-300 ${
+                useDarkText ? "text-blue-950" : "text-white"
+              }`}
+            >
+              NLK Schools
+            </span>
           </Link>
 
           {/* Desktop Nav */}
@@ -77,9 +92,9 @@ export default function Navbar() {
                 <Link
                   href={link.href}
                   className={`text-xs font-bold uppercase tracking-wide transition-colors flex items-center gap-1 py-3 ${
-                    scrolled
-                      ? "text-slate-600 hover:text-blue-900"
-                      : "text-blue-100 hover:text-white"
+                    useDarkText
+                      ? "text-slate-600 hover:text-blue-900" // High Contrast Mode
+                      : "text-blue-100 hover:text-white" // Light Mode (on dark bg)
                   }`}
                 >
                   {link.name}
@@ -115,7 +130,7 @@ export default function Navbar() {
             <Link
               href="/contact"
               className={`hidden md:block px-6 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md ${
-                scrolled
+                useDarkText
                   ? "bg-blue-900 text-white hover:bg-blue-800"
                   : "bg-white text-blue-900 hover:bg-blue-50"
               }`}
@@ -126,8 +141,8 @@ export default function Navbar() {
             {/* Mobile Toggle */}
             <button
               onClick={() => setIsOpen(true)}
-              className={`lg:hidden p-2 rounded-full ${
-                scrolled
+              className={`lg:hidden p-2 rounded-full transition-colors ${
+                useDarkText
                   ? "bg-slate-100 text-slate-900"
                   : "bg-white/10 text-white"
               }`}
@@ -148,11 +163,16 @@ export default function Navbar() {
             className="fixed inset-0 z-[60] bg-blue-950 text-white flex flex-col p-6 overflow-hidden"
           >
             <div className="flex justify-between items-center mb-8">
-              <img
-                src="https://www.nlkschools.org/wp-content/uploads/2020/08/nlk_logo.png"
-                alt="NLK Logo"
-                className="w-12 h-12 object-contain brightness-0 invert"
-              />
+              <div className="flex items-center gap-3">
+                <img
+                  src="https://www.nlkschools.org/wp-content/uploads/2020/08/nlk_logo.png"
+                  alt="NLK Logo"
+                  className="w-12 h-12 object-contain brightness-0 invert"
+                />
+                <span className="text-xl font-bold tracking-tight text-white">
+                  NLK Group
+                </span>
+              </div>
               <button
                 onClick={() => setIsOpen(false)}
                 className="p-2 bg-white/10 rounded-full hover:bg-white/20"
